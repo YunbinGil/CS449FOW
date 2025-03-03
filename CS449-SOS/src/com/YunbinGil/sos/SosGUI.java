@@ -78,7 +78,7 @@ public class SosGUI extends JFrame {
         repaint();
     }
 
-    private void placeLetter(int row, int col) {
+    public void placeLetter(int row, int col) {
         if (game == null || game.isCellEmpty(row, col)) {
             String[] choices = {"S", "O"};
             String letter = (String) JOptionPane.showInputDialog(this, "Choose a letter:",
@@ -97,8 +97,12 @@ public class SosGUI extends JFrame {
         currentTurnLabel.setText("Current turn: " + (isBlueTurn ? "Blue" : "Red"));
     }
 
-    private void startNewGame() {
+    public void startNewGame() {
         initializeGame();
+    }
+
+    public boolean isBlueTurn() {
+        return isBlueTurn;
     }
 
     public static void main(String[] args) {
