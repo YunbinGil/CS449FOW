@@ -2,13 +2,19 @@ package main.java.com.YunbinGil.sos;
 
 public class SosGame {
     private char[][] board;
+    private int boardSize;
 
     public SosGame(int size) {
-        board = new char[size][size];
+        this.boardSize = size;
+        board = new char[boardSize][boardSize];
+    }
+
+    public boolean isCellEmpty(int row, int col) {
+        return board[row][col] == '\0';
     }
 
     public void placeLetter(int row, int col, char letter) {
-        if (board[row][col] == '\0') {
+        if (isCellEmpty(row, col)) {
             board[row][col] = letter;
         }
     }
@@ -17,8 +23,11 @@ public class SosGame {
         return board[row][col];
     }
 
-    public boolean checkWin() {
-        // (간단한 예시) 만약 첫 행이 "SOS"이면 승리
-        return board[0][0] == 'S' && board[0][1] == 'O' && board[0][2] == 'S';
+    public void resetBoard() {
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
+                board[i][j] = '\0';
+            }
+        }
     }
 }
