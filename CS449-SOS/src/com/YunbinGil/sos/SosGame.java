@@ -1,4 +1,4 @@
-package main.java.com.YunbinGil.sos;
+package com.YunbinGil.sos;
 
 public class SosGame {
     private char[][] board;

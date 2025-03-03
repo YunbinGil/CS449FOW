@@ -1,9 +1,7 @@
-package main.java.com.YunbinGil.sos;
+package com.YunbinGil.sos;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class SosGUI extends JFrame {
     private SosGame game;
