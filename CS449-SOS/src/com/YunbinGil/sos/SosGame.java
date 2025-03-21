@@ -6,6 +6,8 @@ public abstract class SosGame {
     protected int sosCountBlue;
     protected int sosCountRed;
     protected boolean isBlueTurn = true;
+    protected static final int[][] DIRECTIONS = {{1, 0}, {0, 1}, {1, 1}, {1, -1}};
+
 
     public SosGame(int size) {
         this.boardSize = size;
@@ -48,31 +50,16 @@ public abstract class SosGame {
         int count = 0;
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
-                boolean found = false;
-
-                if (checkDirection(i, j, 1, 0)) { // 가로
-                    System.out.println("→ Found SOS at (" + i + ", " + j + ") in Horizontal Direction");
-                    found = true;
+                for (int[] d : DIRECTIONS) {
+                    if (checkDirection(i, j, d[0], d[1])) {
+                        count++;
+                        break;
+                    }
                 }
-                if (checkDirection(i, j, 0, 1)) { // 세로
-                    System.out.println("↓ Found SOS at (" + i + ", " + j + ") in Vertical Direction");
-                    found = true;
-                }
-                if (checkDirection(i, j, 1, 1)) { // 대각선 ↘
-                    System.out.println("↘ Found SOS at (" + i + ", " + j + ") in Diagonal \\ Direction");
-                    found = true;
-                }
-                if (checkDirection(i, j, 1, -1)) { // 대각선 ↙
-                    System.out.println("↙ Found SOS at (" + i + ", " + j + ") in Diagonal / Direction");
-                    found = true;
-                }
-
-                if (found) count++;
             }
         }
         return count;
     }
-
 
 
     public boolean checkDirection(int row, int col, int dx, int dy) {

@@ -133,10 +133,9 @@ public class SosGUI extends JFrame {
             if (game.isGeneralMode() && !gameOver) {
                 for (int i = 0; i < boardSize; i++) {
                     for (int j = 0; j < boardSize; j++) {
-                        addLineIfNew(i, j, 1, 0, currentColor);
-                        addLineIfNew(i, j, 0, 1, currentColor);
-                        addLineIfNew(i, j, 1, 1, currentColor);
-                        addLineIfNew(i, j, 1, -1, currentColor);
+                        for (int[] d : SosGame.DIRECTIONS) {
+                            addLineIfNew(i, j, d[0], d[1], currentColor);
+                        }
                     }
                 }
                 overlayPanel.repaint();  // 🔄 선을 즉시 반영
@@ -202,17 +201,12 @@ public class SosGUI extends JFrame {
             g2.setColor(isBlueTurn ? Color.RED : Color.BLUE);
             for (int i = 0; i < boardSize; i++) {
                 for (int j = 0; j < boardSize; j++) {
-                    if (game.checkDirection(i, j, 1, 0)) {
-                        drawLineOnGrid(g2, i - 1, j, i + 1, j);
-                    }
-                    if (game.checkDirection(i, j, 0, 1)) {
-                        drawLineOnGrid(g2, i, j - 1, i, j + 1);
-                    }
-                    if (game.checkDirection(i, j, 1, 1)) {
-                        drawLineOnGrid(g2, i - 1, j - 1, i + 1, j + 1);
-                    }
-                    if (game.checkDirection(i, j, 1, -1)) {
-                        drawLineOnGrid(g2, i - 1, j + 1, i + 1, j - 1);
+                    for (int[] d : SosGame.DIRECTIONS) {
+                        int row1 = i - d[0], col1 = j - d[1];
+                        int row2 = i + d[0], col2 = j + d[1];
+                        if (game.checkDirection(i, j, d[0], d[1])) {
+                            drawLineOnGrid(g2, row1, col1, row2, col2);
+                        }
                     }
                 }
             }
