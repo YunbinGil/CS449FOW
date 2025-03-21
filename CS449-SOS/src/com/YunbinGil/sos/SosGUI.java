@@ -2,6 +2,8 @@ package com.YunbinGil.sos;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SosGUI extends JFrame {
     private SosGame game;
@@ -14,6 +16,7 @@ public class SosGUI extends JFrame {
     private boolean gameOver = false;
     private JPanel overlayPanel;
     private JLayeredPane layeredPane;
+    private List<int[]> sosLines = new ArrayList<>(); // 각 SOS의 중심 좌표 (row, col)
 
     public SosGUI() {
         setTitle("SOS Game");
@@ -66,6 +69,8 @@ public class SosGUI extends JFrame {
         game = isSimpleGame ? new SimpleGame(boardSize) : new GeneralGame(boardSize);
         isBlueTurn = true;
         updateCurrentTurnLabel();
+
+        sosLines.clear();
 
         if (layeredPane != null) remove(layeredPane);
 
@@ -122,6 +127,20 @@ public class SosGUI extends JFrame {
             game.placeLetter(row, col, letter.charAt(0));
             buttons[row][col].setText(letter);
 
+            if (!isSimpleGame && game.checkDirection(row, col, 1, 0)) {
+                sosLines.add(new int[]{row, col, 1, 0});
+            }
+            if (!isSimpleGame && game.checkDirection(row, col, 0, 1)) {
+                sosLines.add(new int[]{row, col, 0, 1});
+            }
+            if (!isSimpleGame && game.checkDirection(row, col, 1, 1)) {
+                sosLines.add(new int[]{row, col, 1, 1});
+            }
+            if (!isSimpleGame && game.checkDirection(row, col, 1, -1)) {
+                sosLines.add(new int[]{row, col, 1, -1});
+            }
+            overlayPanel.repaint();
+
             if (game.checkWinner()) {
                 gameOver = true;
                 disableBoard();
@@ -130,7 +149,10 @@ public class SosGUI extends JFrame {
                 String resultMessage;
                 if (game instanceof SimpleGame && ((SimpleGame) game).countSOS() == 0) {
                     resultMessage = "Draw! No winner.";
-                } else {
+                }else if (game instanceof GeneralGame) {
+                    resultMessage = ((GeneralGame) game).getWinner();
+                }
+                else {
                     resultMessage = isSimpleGame ? (isBlueTurn ? "Red Wins!" : "Blue Wins!") :
                             ((GeneralGame) game).getWinner();
                 }
@@ -164,6 +186,23 @@ public class SosGUI extends JFrame {
         g2.setStroke(new BasicStroke(5));
         g2.setColor(isBlueTurn ? Color.RED : Color.BLUE);
 
+        for (int[] line : sosLines) {
+            int row = line[0];
+            int col = line[1];
+            int dx = line[2];
+            int dy = line[3];
+
+            // 중심 O 기준으로 좌우 S를 그리기 위해 좌표 계산
+            int row1 = row - dx;
+            int col1 = col - dy;
+            int row2 = row + dx;
+            int col2 = col + dy;
+
+            drawLineOnGrid(g2, row1, col1, row2, col2);
+        }
+
+        if (gameOver && isSimpleGame) {
+            g2.setColor(isBlueTurn ? Color.RED : Color.BLUE);
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
                 if (game.checkDirection(i, j, 1, 0)) { // 가로 (좌 → 우)
@@ -185,6 +224,7 @@ public class SosGUI extends JFrame {
                     drawLineOnGrid(g2, i - 1, j + 1, i + 1, j - 1);
                 }
             }
+        }
         }
     }
 

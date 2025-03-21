@@ -80,23 +80,18 @@ public abstract class SosGame {
 
     public boolean checkDirection(int row, int col, int dx, int dy) {
         // 🚨 배열 범위 초과 방지 코드
-        if (row - dx < 0 || row + dx >= boardSize || col - dy < 0 || col + dy >= boardSize) {
-            System.out.println("🚨 Out of Bounds at: (" + row + ", " + col +
-                    ") → Direction: (" + dx + ", " + dy + ")");
-            return false;
+        int row1 = row - dx, col1 = col - dy; // 첫 번째 'S' 위치
+        int row2 = row + dx, col2 = col + dy; // 두 번째 'S' 위치
+
+        // 🚨 배열 범위 초과 방지
+        if (row1 < 0 || row1 >= boardSize || col1 < 0 || col1 >= boardSize ||
+                row2 < 0 || row2 >= boardSize || col2 < 0 || col2 >= boardSize) {
+            return false; // 범위를 벗어나면 false 반환 (예외 방지)
         }
 
-        // ✅ null 체크 및 값 확인
-        if (board[row][col] == 'O' &&
-                board[row - dx][col - dy] == 'S' &&
-                board[row + dx][col + dy] == 'S') {
-
-            System.out.println("✔ Winning SOS detected at: (" + row + ", " + col +
-                    ") → Direction: (" + dx + ", " + dy + ")");
-            return true;
-        }
-
-        return false;
+        return board[row][col] == 'O' &&
+                board[row1][col1] == 'S' &&
+                board[row2][col2] == 'S';
     }
 
     public void initializeBoard() {
