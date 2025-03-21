@@ -100,6 +100,9 @@ public abstract class SosGame {
         }
     }
 
+    public boolean isGeneralMode() {
+        return this instanceof GeneralGame;
+    }
 
 
     // 자식 클래스에서 구현할 메서드

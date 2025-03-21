@@ -130,7 +130,7 @@ public class SosGUI extends JFrame {
             Color currentColor = isBlueTurn ? Color.BLUE : Color.RED;
 
             // 🎯 GeneralGame: 전체 보드 다시 검사해서 새로운 SOS만 추가
-            if (!isSimpleGame && !gameOver) {
+            if (game.isGeneralMode() && !gameOver) {
                 for (int i = 0; i < boardSize; i++) {
                     for (int j = 0; j < boardSize; j++) {
                         addLineIfNew(i, j, 1, 0, currentColor);
