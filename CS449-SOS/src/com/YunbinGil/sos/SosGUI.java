@@ -148,14 +148,7 @@ public class SosGUI extends JFrame {
                 disableBoard();
                 highlightWinningSOS();
 
-                String resultMessage;
-                if (game instanceof SimpleGame && ((SimpleGame) game).countSOS() == 0) {
-                    resultMessage = "Draw! No winner.";
-                } else if (game instanceof GeneralGame) {
-                    resultMessage = ((GeneralGame) game).getWinner();
-                } else {
-                    resultMessage = isBlueTurn ? "Red Wins!" : "Blue Wins!";
-                }
+                String resultMessage = game.getWinner();
 
                 JOptionPane.showMessageDialog(this, resultMessage, "Game Over", JOptionPane.INFORMATION_MESSAGE);
             } else {

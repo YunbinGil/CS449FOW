@@ -104,4 +104,5 @@ public abstract class SosGame {
 
     // 자식 클래스에서 구현할 메서드
     public abstract boolean checkWinner();
+    public abstract String getWinner();
 }

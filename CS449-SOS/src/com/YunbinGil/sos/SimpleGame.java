@@ -22,4 +22,8 @@ public class SimpleGame extends SosGame {
         }
         return true;  // 빈 칸이 없으면 무승부로 게임 종료
     }
+    @Override
+    public String getWinner() {
+        return countSOS() == 0 ? "Draw! No winner." : (isBlueTurn ? "Red Wins!" : "Blue Wins!");
+    }
 }
