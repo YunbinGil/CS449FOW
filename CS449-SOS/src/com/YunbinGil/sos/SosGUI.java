@@ -9,9 +9,11 @@ public class SosGUI extends JFrame {
     private int boardSize = 5;
     private boolean isSimpleGame = true;
     private JPanel boardPanel;
-    private JPanel topPanel;
     private JLabel currentTurnLabel;
     private boolean isBlueTurn = true;
+    private boolean gameOver = false;
+    private JPanel overlayPanel;
+    private JLayeredPane layeredPane;
 
     public SosGUI() {
         setTitle("SOS Game");
@@ -20,7 +22,7 @@ public class SosGUI extends JFrame {
         setLayout(new BorderLayout());
         setLocationRelativeTo(null);
 
-        topPanel = new JPanel();
+        JPanel topPanel = new JPanel();
         String[] sizes = {"3x3", "5x5", "8x8"};
         JComboBox<String> sizeSelector = new JComboBox<>(sizes);
         sizeSelector.addActionListener(e -> setBoardSize(sizeSelector.getSelectedIndex()));
@@ -41,26 +43,37 @@ public class SosGUI extends JFrame {
         add(topPanel, BorderLayout.NORTH);
         add(currentTurnLabel, BorderLayout.SOUTH);
 
-        initializeGame();
+        startNewGame();
         setVisible(true);
     }
 
     private void setBoardSize(int index) {
         switch (index) {
-            case 0: boardSize = 3; break;
-            case 1: boardSize = 5; break;
-            case 2: boardSize = 8; break;
+            case 0:
+                boardSize = 3;
+                break;
+            case 1:
+                boardSize = 5;
+                break;
+            case 2:
+                boardSize = 8;
+                break;
         }
     }
 
-    private void initializeGame() {
-        game = new SosGame(boardSize);
+    private void startNewGame() {
+        gameOver = false;
+        game = isSimpleGame ? new SimpleGame(boardSize) : new GeneralGame(boardSize);
         isBlueTurn = true;
         updateCurrentTurnLabel();
 
-        if (boardPanel != null) {
-            remove(boardPanel);
-        }
+        if (layeredPane != null) remove(layeredPane);
+
+        layeredPane = new JLayeredPane();
+        layeredPane.setLayout(new OverlayLayout(layeredPane)); // 자동으로 크기 맞추도록 변경
+        layeredPane.setPreferredSize(new Dimension(getWidth(), getHeight()));
+
+        // **기본 boardPanel 생성 (Sprint 2에서 설정한 크기 유지)**
         boardPanel = new JPanel(new GridLayout(boardSize, boardSize));
         buttons = new JButton[boardSize][boardSize];
 
@@ -73,20 +86,50 @@ public class SosGUI extends JFrame {
                 boardPanel.add(buttons[i][j]);
             }
         }
-        add(boardPanel, BorderLayout.CENTER);
+
+        // **승리한 SOS 강조를 위한 overlayPanel 생성**
+        overlayPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (gameOver) {
+                    drawWinningLines(g);
+                }
+            }
+        };
+        overlayPanel.setOpaque(false);
+
+        // **boardPanel과 overlayPanel 크기를 자동으로 맞춤**
+        boardPanel.setPreferredSize(new Dimension(getWidth(), getHeight() - 100));
+        overlayPanel.setPreferredSize(new Dimension(getWidth(), getHeight() - 100));
+
+        layeredPane.add(boardPanel, Integer.valueOf(0));
+        layeredPane.add(overlayPanel, Integer.valueOf(1));
+
+        add(layeredPane, BorderLayout.CENTER);
         revalidate();
         repaint();
     }
 
-    public void placeLetter(int row, int col) {
-        if (game == null || game.isCellEmpty(row, col)) {
-            String[] choices = {"S", "O"};
-            String letter = (String) JOptionPane.showInputDialog(this, "Choose a letter:",
-                    "Move", JOptionPane.QUESTION_MESSAGE, null, choices, choices[0]);
-            if (letter != null) {
-                game.placeLetter(row, col, letter.charAt(0));
-                buttons[row][col].setText(letter);
+    private void placeLetter(int row, int col) {
+        if (game == null || !game.isCellEmpty(row, col) || gameOver) return;
 
+        String[] choices = {"S", "O"};
+        String letter = (String) JOptionPane.showInputDialog(this, "Choose a letter:",
+                "Move", JOptionPane.QUESTION_MESSAGE, null, choices, choices[0]);
+
+        if (letter != null) {
+            game.placeLetter(row, col, letter.charAt(0));
+            buttons[row][col].setText(letter);
+
+            if (game.checkWinner()) {
+                gameOver = true;
+                disableBoard();
+                highlightWinningSOS();
+                JOptionPane.showMessageDialog(this, isSimpleGame ?
+                        (isBlueTurn ? "Red Wins!" : "Blue Wins!") :
+                        ((GeneralGame) game).getWinner(), "Game Over", JOptionPane.INFORMATION_MESSAGE);
+            } else {
                 isBlueTurn = !isBlueTurn;
                 updateCurrentTurnLabel();
             }
@@ -97,15 +140,62 @@ public class SosGUI extends JFrame {
         currentTurnLabel.setText("Current turn: " + (isBlueTurn ? "Blue" : "Red"));
     }
 
-    public void startNewGame() {
-        initializeGame();
+    private void disableBoard() {
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
+                buttons[i][j].setEnabled(false);
+            }
+        }
     }
 
-    public boolean isBlueTurn() {
-        return isBlueTurn;
+    private void highlightWinningSOS() {
+        overlayPanel.setVisible(true);
+        overlayPanel.repaint();
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(SosGUI::new);
+    private void drawWinningLines(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setStroke(new BasicStroke(5));
+        g2.setColor(isBlueTurn ? Color.RED : Color.BLUE);
+
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
+                if (game.checkDirection(i, j, 1, 0)) { // 가로 (좌 → 우)
+                    System.out.println("→ Drawing Horizontal Line");
+
+                    drawLineOnGrid(g2, i - 1, j, i + 1, j);
+                }
+                if (game.checkDirection(i, j, 0, 1)) { // 세로 (위 → 아래)
+                    System.out.println("↓ Drawing Vertical Line");
+
+                    drawLineOnGrid(g2, i, j - 1, i, j + 1);
+                }
+                if (game.checkDirection(i, j, 1, 1)) { // 대각선 (\)
+                    System.out.println("↘ Drawing Diagonal Line (Top-Left to Bottom-Right)");
+                    drawLineOnGrid(g2, i - 1, j - 1, i + 1, j + 1);
+                }
+                if (game.checkDirection(i, j, 1, -1)) { // 대각선 (/)
+                    System.out.println("↙ Drawing Diagonal Line (Top-Right to Bottom-Left)");
+                    drawLineOnGrid(g2, i - 1, j + 1, i + 1, j - 1);
+                }
+            }
+        }
     }
+
+
+    private void drawLineOnGrid(Graphics2D g2, int row1, int col1, int row2, int col2) {
+        int cellWidth = overlayPanel.getWidth() / boardSize;
+        int cellHeight = overlayPanel.getHeight() / boardSize;
+
+        // **각 셀의 중앙 좌표 계산 (오프셋 조정)**
+        int x1 = (col1 * cellWidth) + (cellWidth / 2);
+        int y1 = (row1 * cellHeight) + (cellHeight / 2);
+        int x2 = (col2 * cellWidth) + (cellWidth / 2);
+        int y2 = (row2 * cellHeight) + (cellHeight / 2);
+
+
+        // **보정값 추가해서 그리드 정확한 중앙에 선이 그려지도록 조정**
+        g2.drawLine(x1, y1, x2, y2);
+    }
+
 }
