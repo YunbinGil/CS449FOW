@@ -8,7 +8,7 @@ import java.util.List;
 public class SosGUI extends JFrame {
     private SosGame game;
     private JButton[][] buttons;
-    private int boardSize = 5;
+    private int boardSize = 3;
     private boolean isSimpleGame = true;
     private JPanel boardPanel;
     private JLabel currentTurnLabel;
@@ -16,7 +16,7 @@ public class SosGUI extends JFrame {
     private boolean gameOver = false;
     private JPanel overlayPanel;
     private JLayeredPane layeredPane;
-    private List<int[]> sosLines = new ArrayList<>(); // 각 SOS의 중심 좌표 (row, col)
+    private List<SosLine> sosLines = new ArrayList<>();
 
     public SosGUI() {
         setTitle("SOS Game");
@@ -97,12 +97,11 @@ public class SosGUI extends JFrame {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                if (gameOver) {
-                    drawWinningLines(g);
-                }
+                drawWinningLines(g);
             }
         };
         overlayPanel.setOpaque(false);
+        overlayPanel.setVisible(true);
 
         // **boardPanel과 overlayPanel 크기를 자동으로 맞춤**
         boardPanel.setPreferredSize(new Dimension(getWidth(), getHeight() - 100));
@@ -127,20 +126,21 @@ public class SosGUI extends JFrame {
             game.placeLetter(row, col, letter.charAt(0));
             buttons[row][col].setText(letter);
 
-            if (!isSimpleGame && game.checkDirection(row, col, 1, 0)) {
-                sosLines.add(new int[]{row, col, 1, 0});
-            }
-            if (!isSimpleGame && game.checkDirection(row, col, 0, 1)) {
-                sosLines.add(new int[]{row, col, 0, 1});
-            }
-            if (!isSimpleGame && game.checkDirection(row, col, 1, 1)) {
-                sosLines.add(new int[]{row, col, 1, 1});
-            }
-            if (!isSimpleGame && game.checkDirection(row, col, 1, -1)) {
-                sosLines.add(new int[]{row, col, 1, -1});
-            }
-            overlayPanel.repaint();
+            // 🎨 현재 플레이어의 색상 고정
+            Color currentColor = isBlueTurn ? Color.BLUE : Color.RED;
 
+            // 🎯 GeneralGame일 경우: 전체 보드 다시 검사해서 sosLines 업데이트
+            for (int i = 0; i < boardSize; i++) {
+                for (int j = 0; j < boardSize; j++) {
+                    addLineIfNew(i, j, 1, 0, currentColor);
+                    addLineIfNew(i, j, 0, 1, currentColor);
+                    addLineIfNew(i, j, 1, 1, currentColor);
+                    addLineIfNew(i, j, 1, -1, currentColor);
+                }
+            }
+                overlayPanel.repaint();
+
+            // 🏁 게임 종료 판정
             if (game.checkWinner()) {
                 gameOver = true;
                 disableBoard();
@@ -149,13 +149,12 @@ public class SosGUI extends JFrame {
                 String resultMessage;
                 if (game instanceof SimpleGame && ((SimpleGame) game).countSOS() == 0) {
                     resultMessage = "Draw! No winner.";
-                }else if (game instanceof GeneralGame) {
+                } else if (game instanceof GeneralGame) {
                     resultMessage = ((GeneralGame) game).getWinner();
+                } else {
+                    resultMessage = isBlueTurn ? "Red Wins!" : "Blue Wins!";
                 }
-                else {
-                    resultMessage = isSimpleGame ? (isBlueTurn ? "Red Wins!" : "Blue Wins!") :
-                            ((GeneralGame) game).getWinner();
-                }
+
                 JOptionPane.showMessageDialog(this, resultMessage, "Game Over", JOptionPane.INFORMATION_MESSAGE);
             } else {
                 isBlueTurn = !isBlueTurn;
@@ -184,47 +183,44 @@ public class SosGUI extends JFrame {
     private void drawWinningLines(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setStroke(new BasicStroke(5));
-        g2.setColor(isBlueTurn ? Color.RED : Color.BLUE);
 
-        for (int[] line : sosLines) {
-            int row = line[0];
-            int col = line[1];
-            int dx = line[2];
-            int dy = line[3];
+        // 🎯 GeneralGame & SimpleGame 공통: sosLines 기반으로 그림
+        for (SosLine line : sosLines) {
+            g2.setColor(line.color);  // 🟢 선마다 고정된 색으로 설정
 
-            // 중심 O 기준으로 좌우 S를 그리기 위해 좌표 계산
-            int row1 = row - dx;
-            int col1 = col - dy;
-            int row2 = row + dx;
-            int col2 = col + dy;
+            int row1 = line.row - line.dx;
+            int col1 = line.col - line.dy;
+            int row2 = line.row + line.dx;
+            int col2 = line.col + line.dy;
 
-            drawLineOnGrid(g2, row1, col1, row2, col2);
-        }
+            // ✅ 배열 범위 체크
+            if (row1 >= 0 && row1 < boardSize && col1 >= 0 && col1 < boardSize &&
+                    row2 >= 0 && row2 < boardSize && col2 >= 0 && col2 < boardSize) {
 
-        if (gameOver && isSimpleGame) {
-            g2.setColor(isBlueTurn ? Color.RED : Color.BLUE);
-        for (int i = 0; i < boardSize; i++) {
-            for (int j = 0; j < boardSize; j++) {
-                if (game.checkDirection(i, j, 1, 0)) { // 가로 (좌 → 우)
-                    System.out.println("→ Drawing Horizontal Line");
-
-                    drawLineOnGrid(g2, i - 1, j, i + 1, j);
-                }
-                if (game.checkDirection(i, j, 0, 1)) { // 세로 (위 → 아래)
-                    System.out.println("↓ Drawing Vertical Line");
-
-                    drawLineOnGrid(g2, i, j - 1, i, j + 1);
-                }
-                if (game.checkDirection(i, j, 1, 1)) { // 대각선 (\)
-                    System.out.println("↘ Drawing Diagonal Line (Top-Left to Bottom-Right)");
-                    drawLineOnGrid(g2, i - 1, j - 1, i + 1, j + 1);
-                }
-                if (game.checkDirection(i, j, 1, -1)) { // 대각선 (/)
-                    System.out.println("↙ Drawing Diagonal Line (Top-Right to Bottom-Left)");
-                    drawLineOnGrid(g2, i - 1, j + 1, i + 1, j - 1);
-                }
+                System.out.println("🎯 선 그림: (" + row1 + "," + col1 + ") → (" + row2 + "," + col2 + ")");
+                drawLineOnGrid(g2, row1, col1, row2, col2);
             }
         }
+
+        // 🟦 SimpleGame 종료 시 전체 다시 스캔 (색은 현재 턴 기준)
+        if (isSimpleGame && gameOver) {
+            g2.setColor(isBlueTurn ? Color.RED : Color.BLUE);
+            for (int i = 0; i < boardSize; i++) {
+                for (int j = 0; j < boardSize; j++) {
+                    if (game.checkDirection(i, j, 1, 0)) {
+                        drawLineOnGrid(g2, i - 1, j, i + 1, j);
+                    }
+                    if (game.checkDirection(i, j, 0, 1)) {
+                        drawLineOnGrid(g2, i, j - 1, i, j + 1);
+                    }
+                    if (game.checkDirection(i, j, 1, 1)) {
+                        drawLineOnGrid(g2, i - 1, j - 1, i + 1, j + 1);
+                    }
+                    if (game.checkDirection(i, j, 1, -1)) {
+                        drawLineOnGrid(g2, i - 1, j + 1, i + 1, j - 1);
+                    }
+                }
+            }
         }
     }
 
@@ -243,5 +239,15 @@ public class SosGUI extends JFrame {
         // **보정값 추가해서 그리드 정확한 중앙에 선이 그려지도록 조정**
         g2.drawLine(x1, y1, x2, y2);
     }
-
+    private void addLineIfNew(int row, int col, int dx, int dy, Color color) {
+        if (game.checkDirection(row, col, dx, dy)) {
+            for (SosLine line : sosLines) {
+                if (line.row == row && line.col == col &&
+                        line.dx == dx && line.dy == dy) {
+                    return; // 이미 존재하는 선이면 추가 안 함
+                }
+            }
+            sosLines.add(new SosLine(row, col, dx, dy, color));
+        }
+    }
 }
