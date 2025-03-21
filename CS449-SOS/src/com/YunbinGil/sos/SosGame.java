@@ -19,10 +19,7 @@ public abstract class SosGame {
     public void placeLetter(int row, int col, char letter) {
         if (isCellEmpty(row, col)) {
             board[row][col] = letter;
-            if (checkSOS(row, col)) {
-                if (isBlueTurn) sosCountBlue++;
-                else sosCountRed++;
-            } else {
+            if (!checkSOS(row, col)) {
                 isBlueTurn = !isBlueTurn;  // 턴 전환
             }
         }

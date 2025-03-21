@@ -19,6 +19,8 @@ public class GeneralGame extends SosGame {
     }
 
     public String getWinner() {
+        System.out.println("🔍 Blue SOS Count: " + sosCountBlue);
+        System.out.println("🔍 Red SOS Count: " + sosCountRed);
         if (sosCountBlue > sosCountRed) return "Blue Wins!";
         else if (sosCountRed > sosCountBlue) return "Red Wins!";
         else return "Draw!";

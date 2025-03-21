@@ -129,16 +129,18 @@ public class SosGUI extends JFrame {
             // 🎨 현재 플레이어의 색상 고정
             Color currentColor = isBlueTurn ? Color.BLUE : Color.RED;
 
-            // 🎯 GeneralGame일 경우: 전체 보드 다시 검사해서 sosLines 업데이트
-            for (int i = 0; i < boardSize; i++) {
-                for (int j = 0; j < boardSize; j++) {
-                    addLineIfNew(i, j, 1, 0, currentColor);
-                    addLineIfNew(i, j, 0, 1, currentColor);
-                    addLineIfNew(i, j, 1, 1, currentColor);
-                    addLineIfNew(i, j, 1, -1, currentColor);
+            // 🎯 GeneralGame: 전체 보드 다시 검사해서 새로운 SOS만 추가
+            if (!isSimpleGame && !gameOver) {
+                for (int i = 0; i < boardSize; i++) {
+                    for (int j = 0; j < boardSize; j++) {
+                        addLineIfNew(i, j, 1, 0, currentColor);
+                        addLineIfNew(i, j, 0, 1, currentColor);
+                        addLineIfNew(i, j, 1, 1, currentColor);
+                        addLineIfNew(i, j, 1, -1, currentColor);
+                    }
                 }
+                overlayPanel.repaint();  // 🔄 선을 즉시 반영
             }
-                overlayPanel.repaint();
 
             // 🏁 게임 종료 판정
             if (game.checkWinner()) {
@@ -248,6 +250,9 @@ public class SosGUI extends JFrame {
                 }
             }
             sosLines.add(new SosLine(row, col, dx, dy, color));
+            if (color == Color.BLUE) game.sosCountBlue++;
+            else game.sosCountRed++;
+
         }
     }
 }
