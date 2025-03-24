@@ -3,8 +3,8 @@ package com.YunbinGil.sos;
 public abstract class SosGame {
     protected char[][] board;
     protected int boardSize;
-    protected int sosCountBlue;
-    protected int sosCountRed;
+    public int sosCountBlue;
+    public int sosCountRed;
     protected boolean isBlueTurn = true;
     protected static final int[][] DIRECTIONS = {{1, 0}, {0, 1}, {1, 1}, {1, -1}};
 
