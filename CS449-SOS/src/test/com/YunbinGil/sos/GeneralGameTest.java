@@ -33,7 +33,7 @@
 
 
         @Test
-        public void testDraw_3x3_ExactlyTwoSOSPerPlayer() {
+        public void testDraw_3x3() {
             GeneralGame game = new GeneralGame(3);
             SosGameController controller = new SosGameController(game);
 
