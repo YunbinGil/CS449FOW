@@ -24,6 +24,6 @@ public class SimpleGame extends SosGame {
     }
     @Override
     public String getWinner() {
-        return countSOS() == 0 ? "Draw! No winner." : (isBlueTurn ? "Red Wins!" : "Blue Wins!");
+        return countSOS() == 0 ? "Draw! No winner." : (!isBlueTurn ? "Red Wins!" : "Blue Wins!");
     }
 }

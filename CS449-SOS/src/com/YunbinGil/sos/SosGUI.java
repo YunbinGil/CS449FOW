@@ -145,7 +145,7 @@ public class SosGUI extends JFrame {
     private void highlightWinningSOS() {
         // SimpleGame이면 여기서 선 직접 추가
         if (!game.isGeneralMode()) {
-            Color winnerColor = isBlueTurn ? Color.RED : Color.BLUE;
+            Color winnerColor = controller.getResultMessage().contains("Blue") ? Color.BLUE : Color.RED;
 
             for (int i = 0; i < boardSize; i++) {
                 for (int j = 0; j < boardSize; j++) {
