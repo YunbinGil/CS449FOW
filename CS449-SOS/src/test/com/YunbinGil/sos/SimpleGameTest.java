@@ -13,7 +13,7 @@ public class SimpleGameTest {
         game.placeLetter(1, 1, 'O');
         game.placeLetter(1, 2, 'S');
         assertTrue(game.checkWinner());
-        assertEquals("Red Wins!", game.getWinner());
+        assertEquals("Blue Wins!", game.getWinner());
     }
 
     @Test
