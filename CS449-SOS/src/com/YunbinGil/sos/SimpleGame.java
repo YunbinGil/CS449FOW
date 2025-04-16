@@ -15,7 +15,7 @@ public class SimpleGame extends SosGame {
         // 🏁 빈 칸이 없으면 무승부
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
-                if (board[i][j] == '\0') {
+                if (board[i][j] == ' ') {
                     return false;  // 빈 칸이 남아 있으면 게임 계속 진행
                 }
             }

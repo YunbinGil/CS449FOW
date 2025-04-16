@@ -1,5 +1,9 @@
 package com.YunbinGil.sos;
 
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+
 public abstract class SosGame {
     protected char[][] board;
     protected int boardSize;
@@ -12,10 +16,11 @@ public abstract class SosGame {
     public SosGame(int size) {
         this.boardSize = size;
         board = new char[boardSize][boardSize];
+        initializeBoard();
     }
 
     public boolean isCellEmpty(int row, int col) {
-        return board[row][col] == '\0';
+        return board[row][col] == ' ';
     }
 
     public void placeLetter(int row, int col, char letter) {
@@ -29,17 +34,6 @@ public abstract class SosGame {
 
     public char getLetter(int row, int col) {
         return board[row][col];
-    }
-
-    public void resetBoard() {
-        for (int i = 0; i < boardSize; i++) {
-            for (int j = 0; j < boardSize; j++) {
-                board[i][j] = '\0';
-            }
-        }
-        sosCountBlue = 0;
-        sosCountRed = 0;
-        isBlueTurn = true;
     }
 
     protected boolean checkSOS(int row, int col) {
@@ -77,9 +71,17 @@ public abstract class SosGame {
                 board[row1][col1] == 'S' &&
                 board[row2][col2] == 'S';
     }
+    public List<SosLine> checkAllDirections(int row, int col, Color color) {
+        List<SosLine> found = new ArrayList<>();
+        if (checkDirection(row, col, 1, 0)) found.add(new SosLine(row, col, 1, 0, color));
+        if (checkDirection(row, col, 0, 1)) found.add(new SosLine(row, col, 0, 1, color));
+        if (checkDirection(row, col, 1, 1)) found.add(new SosLine(row, col, 1, 1, color));
+        if (checkDirection(row, col, 1, -1)) found.add(new SosLine(row, col, 1, -1, color));
+        return found;
+    }
+
 
     public void initializeBoard() {
-        board = new char[boardSize][boardSize];
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
                 board[i][j] = ' '; // 빈 칸을 공백 문자로 채움

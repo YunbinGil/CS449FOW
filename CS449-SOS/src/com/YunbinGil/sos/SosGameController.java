@@ -1,6 +1,8 @@
 package com.YunbinGil.sos;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 public class SosGameController {
     private SosGame game;
@@ -73,15 +75,23 @@ public class SosGameController {
         }
     }
 
-    public void handleComputerTurn(boolean isBlueTurn) {
-        if ((isBlueTurn && blueIsComputer) || (!isBlueTurn && redIsComputer)) {
-            ComputerPlayer ai = isBlueTurn ? blueAI : redAI;
-            ComputerPlayer.Move move = ai.decideMove(game.getBoard());
-            if (move != null) {
-                handleMove(move.row, move.col, move.letter, isBlueTurn);
-            }
+    public ComputerPlayer.Move handleComputerTurn(boolean isBlue) {
+        if ((isBlue && !blueIsComputer) || (!isBlue && !redIsComputer)) return null;
+
+        ComputerPlayer computer = new ComputerPlayer();
+        ComputerPlayer.Move move = computer.decideMove(game.getBoard());
+
+        if (move != null) {
+            System.out.println("🤖 Computer moves: " + move.row + "," + move.col + " = " + move.letter);
+            game.placeLetter(move.row, move.col, move.letter);
+            sosLines.addAll(game.checkAllDirections(move.row, move.col, isBlue ? Color.BLUE : Color.RED));
+        }else{
+            System.out.println("🤖 No move available.");
         }
+
+        return move;
     }
+
 
     private void addGeneralSosLines(int row, int col, boolean isBlueTurn) {
         if (game.checkDirection(row, col, 1, 0)) sosLines.add(new SosLine(row, col, 1, 0, isBlueTurn ? java.awt.Color.BLUE : java.awt.Color.RED));

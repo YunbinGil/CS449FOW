@@ -86,8 +86,10 @@ public class SosGUI extends JFrame {
         repaintOverlay();
 
         if (blueIsComputer) {
-            controller.handleComputerTurn(true);
-            repaintOverlay();
+            SwingUtilities.invokeLater(() -> {
+                controller.handleComputerTurn(true);
+                repaintOverlay();
+            });
         }
     }
 
@@ -117,10 +119,10 @@ public class SosGUI extends JFrame {
             }
         };
         overlayPanel.setOpaque(false);
-        overlayPanel.setLayout(new GridLayout(size, size));
+        overlayPanel.setLayout(new BorderLayout());
         overlayPanel.add(boardPanel, BorderLayout.CENTER);
-        add(overlayPanel, BorderLayout.CENTER);
 
+        add(overlayPanel, BorderLayout.CENTER);
         revalidate();
         repaint();
     }
@@ -135,7 +137,11 @@ public class SosGUI extends JFrame {
         if (letter != null) {
             boolean isBlueTurn = controller.getGame().isBlueTurn();
             controller.handleMove(row, col, letter.charAt(0), isBlueTurn);
-            buttons[row][col].setText(letter);
+
+            // ✅ 사람이 둔 경우 실제 반영된 글자를 가져와서 표시
+            char actual = controller.getGame().getLetter(row, col);
+            buttons[row][col].setText(String.valueOf(actual));
+
             repaintOverlay();
 
             if (controller.isGameOver()) {
@@ -148,23 +154,35 @@ public class SosGUI extends JFrame {
 
             updateCurrentTurnLabel();
 
-            boolean nextTurnBlue = controller.getGame().isBlueTurn();
-            boolean isComputerTurn = (nextTurnBlue && controller.isBlueComputer())
-                    || (!nextTurnBlue && controller.isRedComputer());
+            SwingUtilities.invokeLater(() -> {
+                while (!controller.isGameOver()) {
+                    boolean isComputer = (controller.getGame().isBlueTurn() && controller.isBlueComputer()) ||
+                            (!controller.getGame().isBlueTurn() && controller.isRedComputer());
 
-            if (isComputerTurn) {
-                controller.handleComputerTurn(nextTurnBlue);
-                repaintOverlay();
+                    if (isComputer) {
+                        boolean before = controller.getGame().isBlueTurn(); // 현재 턴 저장
+                        ComputerPlayer.Move move = controller.handleComputerTurn(before);
+                        if (move != null) {
+                            buttons[move.row][move.col].setText(String.valueOf(move.letter));
+                        }
+                        repaintOverlay();
+                        updateCurrentTurnLabel();
+
+                        // 🛑 턴이 바뀌지 않았다면 SOS 성공 → 한 번만 두고 종료
+                        if (controller.getGame().isBlueTurn() == before) break;
+
+                    } else {
+                        break;
+                    }
+                }
 
                 if (controller.isGameOver()) {
                     gameOver = true;
                     disableBoard();
                     highlightWinningSOS();
                     JOptionPane.showMessageDialog(this, controller.getResultMessage(), "Game Over", JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    updateCurrentTurnLabel();
                 }
-            }
+            });
         }
     }
 
