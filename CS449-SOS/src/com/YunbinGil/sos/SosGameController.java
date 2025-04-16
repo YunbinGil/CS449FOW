@@ -1,24 +1,53 @@
 package com.YunbinGil.sos;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class SosGameController {
     private SosGame game;
-    private final List<SosLine> sosLines = new ArrayList<>();
+    private List<SosLine> sosLines;
+    private boolean gameOver;
+    private ComputerPlayer blueAI;
+    private ComputerPlayer redAI;
+    private boolean blueIsComputer;
+    private boolean redIsComputer;
 
     public SosGameController(SosGame game) {
         this.game = game;
+        this.sosLines = new ArrayList<>();
+        this.gameOver = false;
+        this.blueAI = new ComputerPlayer();
+        this.redAI = new ComputerPlayer();
+    }
+
+    public void setPlayerTypes(boolean blueIsComputer, boolean redIsComputer) {
+        this.blueIsComputer = blueIsComputer;
+        this.redIsComputer = redIsComputer;
+    }
+
+    public void resetGame(SosGame newGame) {
+        this.game = newGame;
+        this.sosLines.clear();
+        this.gameOver = false;
     }
 
     public SosGame getGame() {
         return game;
     }
 
-    public void resetGame(SosGame newGame) {
-        this.game = newGame;
-        sosLines.clear();
+    public boolean isBlueComputer() {
+        return blueIsComputer;
+    }
+
+    public boolean isRedComputer() {
+        return redIsComputer;
+    }
+
+    public boolean isGameOver() {
+        return gameOver;
+    }
+
+    public String getResultMessage() {
+        return game.getWinner();
     }
 
     public List<SosLine> getSosLines() {
@@ -26,39 +55,49 @@ public class SosGameController {
     }
 
     public void handleMove(int row, int col, char letter, boolean isBlueTurn) {
-        game.placeLetter(row, col, letter);
-        Color color = isBlueTurn ? Color.BLUE : Color.RED;
-
-        // GeneralGame: SOS 탐색 후 선 추가
-        if (game.isGeneralMode()) {
-            for (int i = 0; i < game.boardSize; i++) {
-                for (int j = 0; j < game.boardSize; j++) {
-                    for (int[] d : SosGame.DIRECTIONS) {
-                        addLineIfNew(i, j, d[0], d[1], color);
-                    }
+        if (game.isCellEmpty(row, col) && !gameOver) {
+            game.placeLetter(row, col, letter);
+            if (!game.isGeneralMode()) {
+                if (game.checkWinner()) {
+                    addSimpleWinningLines(isBlueTurn);
+                    gameOver = true;
+                    return;
+                }
+            } else {
+                addGeneralSosLines(row, col, isBlueTurn);
+                if (game.checkWinner()) {
+                    gameOver = true;
+                    return;
                 }
             }
         }
     }
 
-    private void addLineIfNew(int row, int col, int dx, int dy, Color color) {
-        if (game.checkDirection(row, col, dx, dy)) {
-            for (SosLine line : sosLines) {
-                if (line.row == row && line.col == col && line.dx == dx && line.dy == dy) {
-                    return; // 중복 방지
-                }
+    public void handleComputerTurn(boolean isBlueTurn) {
+        if ((isBlueTurn && blueIsComputer) || (!isBlueTurn && redIsComputer)) {
+            ComputerPlayer ai = isBlueTurn ? blueAI : redAI;
+            ComputerPlayer.Move move = ai.decideMove(game.getBoard());
+            if (move != null) {
+                handleMove(move.row, move.col, move.letter, isBlueTurn);
             }
-            sosLines.add(new SosLine(row, col, dx, dy, color));
-            if (color == Color.BLUE) game.sosCountBlue++;
-            else game.sosCountRed++;
         }
     }
 
-    public boolean isGameOver() {
-        return game.checkWinner();
+    private void addGeneralSosLines(int row, int col, boolean isBlueTurn) {
+        if (game.checkDirection(row, col, 1, 0)) sosLines.add(new SosLine(row, col, 1, 0, isBlueTurn ? java.awt.Color.BLUE : java.awt.Color.RED));
+        if (game.checkDirection(row, col, 0, 1)) sosLines.add(new SosLine(row, col, 0, 1, isBlueTurn ? java.awt.Color.BLUE : java.awt.Color.RED));
+        if (game.checkDirection(row, col, 1, 1)) sosLines.add(new SosLine(row, col, 1, 1, isBlueTurn ? java.awt.Color.BLUE : java.awt.Color.RED));
+        if (game.checkDirection(row, col, 1, -1)) sosLines.add(new SosLine(row, col, 1, -1, isBlueTurn ? java.awt.Color.BLUE : java.awt.Color.RED));
     }
 
-    public String getResultMessage() {
-        return game.getWinner();
+    private void addSimpleWinningLines(boolean isBlueTurn) {
+        for (int i = 0; i < game.getBoard().length; i++) {
+            for (int j = 0; j < game.getBoard()[0].length; j++) {
+                if (game.checkDirection(i, j, 1, 0)) sosLines.add(new SosLine(i, j, 1, 0, isBlueTurn ? java.awt.Color.BLUE : java.awt.Color.RED));
+                if (game.checkDirection(i, j, 0, 1)) sosLines.add(new SosLine(i, j, 0, 1, isBlueTurn ? java.awt.Color.BLUE : java.awt.Color.RED));
+                if (game.checkDirection(i, j, 1, 1)) sosLines.add(new SosLine(i, j, 1, 1, isBlueTurn ? java.awt.Color.BLUE : java.awt.Color.RED));
+                if (game.checkDirection(i, j, 1, -1)) sosLines.add(new SosLine(i, j, 1, -1, isBlueTurn ? java.awt.Color.BLUE : java.awt.Color.RED));
+            }
+        }
     }
 }

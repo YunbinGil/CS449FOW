@@ -87,6 +87,13 @@ public abstract class SosGame {
         }
     }
 
+    public char[][] getBoard() {
+        return board;
+    }
+    public boolean isBlueTurn() {
+        return isBlueTurn;
+    }
+
     public boolean isGeneralMode() {
         return this instanceof GeneralGame;
     }
