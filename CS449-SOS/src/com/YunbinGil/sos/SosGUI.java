@@ -68,31 +68,6 @@ public class SosGUI extends JFrame {
         panel.add(redPlayerTypeBox);
         add(panel, BorderLayout.NORTH);
     }
-
-    private void startNewGame() {
-        int size = Integer.parseInt((String) boardSizeBox.getSelectedItem());
-        boolean isSimple = modeBox.getSelectedItem().equals("Simple");
-        game = isSimple ? new SimpleGame(size) : new GeneralGame(size);
-        controller = new SosGameController(game);
-
-        boolean blueIsComputer = bluePlayerTypeBox.getSelectedItem().equals("Computer");
-        boolean redIsComputer = redPlayerTypeBox.getSelectedItem().equals("Computer");
-        controller.setPlayerTypes(blueIsComputer, redIsComputer);
-
-        gameOver = false;
-        updateCurrentTurnLabel();
-
-        setupBoard(size);
-        repaintOverlay();
-
-        if (blueIsComputer) {
-            SwingUtilities.invokeLater(() -> {
-                controller.handleComputerTurn(true);
-                repaintOverlay();
-            });
-        }
-    }
-
     private void setupBoard(int size) {
         if (boardPanel != null) remove(boardPanel);
         if (overlayPanel != null) remove(overlayPanel);
@@ -127,6 +102,30 @@ public class SosGUI extends JFrame {
         repaint();
     }
 
+    private void startNewGame() {
+        int size = Integer.parseInt((String) boardSizeBox.getSelectedItem());
+        boolean isSimple = modeBox.getSelectedItem().equals("Simple");
+        game = isSimple ? new SimpleGame(size) : new GeneralGame(size);
+        controller = new SosGameController(game);
+
+        boolean blueIsComputer = bluePlayerTypeBox.getSelectedItem().equals("Computer");
+        boolean redIsComputer = redPlayerTypeBox.getSelectedItem().equals("Computer");
+        controller.setPlayerTypes(blueIsComputer, redIsComputer);
+
+        gameOver = false;
+        updateCurrentTurnLabel();
+
+        setupBoard(size);
+        repaintOverlay();
+
+        if (blueIsComputer) {
+            SwingUtilities.invokeLater(() -> {
+                controller.handleComputerTurn(true);
+                repaintOverlay();
+            });
+        }
+    }
+
     private void placeLetter(int row, int col) {
         if (game == null || !game.isCellEmpty(row, col) || gameOver) return;
 
@@ -138,7 +137,6 @@ public class SosGUI extends JFrame {
             boolean isBlueTurn = controller.getGame().isBlueTurn();
             controller.handleMove(row, col, letter.charAt(0), isBlueTurn);
 
-            // ✅ 사람이 둔 경우 실제 반영된 글자를 가져와서 표시
             char actual = controller.getGame().getLetter(row, col);
             buttons[row][col].setText(String.valueOf(actual));
 
@@ -160,7 +158,7 @@ public class SosGUI extends JFrame {
                             (!controller.getGame().isBlueTurn() && controller.isRedComputer());
 
                     if (isComputer) {
-                        boolean before = controller.getGame().isBlueTurn(); // 현재 턴 저장
+                        boolean before = controller.getGame().isBlueTurn();
                         ComputerPlayer.Move move = controller.handleComputerTurn(before);
                         if (move != null) {
                             buttons[move.row][move.col].setText(String.valueOf(move.letter));
@@ -168,7 +166,14 @@ public class SosGUI extends JFrame {
                         repaintOverlay();
                         updateCurrentTurnLabel();
 
-                        // 🛑 턴이 바뀌지 않았다면 SOS 성공 → 한 번만 두고 종료
+                        if (controller.isGameOver()) {
+                            gameOver = true;
+                            disableBoard();
+                            highlightWinningSOS();
+                            JOptionPane.showMessageDialog(this, controller.getResultMessage(), "Game Over", JOptionPane.INFORMATION_MESSAGE);
+                            return;
+                        }
+
                         if (controller.getGame().isBlueTurn() == before) break;
 
                     } else {
@@ -176,7 +181,7 @@ public class SosGUI extends JFrame {
                     }
                 }
 
-                if (controller.isGameOver()) {
+                if (controller.isGameOver() && !gameOver) {
                     gameOver = true;
                     disableBoard();
                     highlightWinningSOS();
