@@ -2,6 +2,7 @@ package com.YunbinGil.sos;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 public class SosGUI extends JFrame {
     private SosGame game;
@@ -9,6 +10,7 @@ public class SosGUI extends JFrame {
     private JButton[][] buttons;
     private JPanel boardPanel;
     private JPanel overlayPanel;
+    private JLayeredPane layeredPane;
     private boolean gameOver = false;
     private JLabel currentTurnLabel;
     private JComboBox<String> boardSizeBox;
@@ -25,17 +27,10 @@ public class SosGUI extends JFrame {
         setupTopPanel();
         setupPlayerSelectors();
 
-        boardPanel = new JPanel();
-        overlayPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                drawWinningLines(g);
-            }
-        };
-        overlayPanel.setOpaque(false);
+        layeredPane = new JLayeredPane();
+        layeredPane.setLayout(null);
+        add(layeredPane, BorderLayout.CENTER);
 
-        add(overlayPanel, BorderLayout.CENTER);
         setVisible(true);
     }
 
@@ -68,9 +63,10 @@ public class SosGUI extends JFrame {
         panel.add(redPlayerTypeBox);
         add(panel, BorderLayout.NORTH);
     }
+
     private void setupBoard(int size) {
-        if (boardPanel != null) remove(boardPanel);
-        if (overlayPanel != null) remove(overlayPanel);
+        if (boardPanel != null) layeredPane.remove(boardPanel);
+        if (overlayPanel != null) layeredPane.remove(overlayPanel);
 
         boardPanel = new JPanel(new GridLayout(size, size));
         buttons = new JButton[size][size];
@@ -94,13 +90,30 @@ public class SosGUI extends JFrame {
             }
         };
         overlayPanel.setOpaque(false);
-        overlayPanel.setLayout(new BorderLayout());
-        overlayPanel.add(boardPanel, BorderLayout.CENTER);
+        overlayPanel.setLayout(null);  // overlay는 자유 배치
 
-        add(overlayPanel, BorderLayout.CENTER);
+        // 창 크기 기반 위치 계산 (중앙 정렬)
+        int windowWidth = getContentPane().getWidth();
+        int windowHeight = getContentPane().getHeight();
+        int usableHeight = windowHeight - 125; // 위·아래 컨트롤 여백 제외
+        int usableSize = Math.min(windowWidth, usableHeight);
+
+        int cellSize = usableSize / size;
+        int panelSize = cellSize * size;
+
+        int xOffset = (windowWidth - panelSize) / 2;
+        int yOffset = (usableHeight - panelSize) / 2;
+
+        boardPanel.setBounds(xOffset, yOffset, panelSize, panelSize);
+        overlayPanel.setBounds(xOffset, yOffset, panelSize, panelSize);
+
+        layeredPane.add(boardPanel, Integer.valueOf(0));
+        layeredPane.add(overlayPanel, Integer.valueOf(1));
         revalidate();
         repaint();
     }
+
+
 
     private void startNewGame() {
         int size = Integer.parseInt((String) boardSizeBox.getSelectedItem());
@@ -209,36 +222,55 @@ public class SosGUI extends JFrame {
     }
 
     private void highlightWinningSOS() {
-        repaintOverlay();
+        if (!game.isGeneralMode()) {
+            Color winnerColor = controller.getResultMessage().contains("Blue") ? Color.BLUE : Color.RED;
+
+            controller.getSosLines().clear();
+            for (int i = 0; i < controller.getGame().getBoard().length; i++) {
+                for (int j = 0; j < controller.getGame().getBoard()[0].length; j++) {
+                    for (int[] d : SosGame.DIRECTIONS) {
+                        if (game.checkDirection(i, j, d[0], d[1])) {
+                            controller.getSosLines().add(new SosLine(i, j, d[0], d[1], winnerColor));
+                        }
+                    }
+                }
+            }
+        }
+
+        overlayPanel.repaint();
     }
 
     private void drawWinningLines(Graphics g) {
         if (controller == null) return;
         Graphics2D g2 = (Graphics2D) g;
         g2.setStroke(new BasicStroke(5));
-        for (SosLine line : controller.getSosLines()) {
-            int row = line.row, col = line.col;
-            int dx = line.dx, dy = line.dy;
-            int row1 = row - dx, col1 = col - dy;
-            int row2 = row + dx, col2 = col + dy;
+        List<SosLine> sosLines = controller.getSosLines();
+
+        for (SosLine line : sosLines) {
+            g2.setColor(line.color);
+
+            int row1 = line.row - line.dx;
+            int col1 = line.col - line.dy;
+            int row2 = line.row + line.dx;
+            int col2 = line.col + line.dy;
 
             if (inBounds(row1, col1) && inBounds(row2, col2)) {
                 JButton b1 = buttons[row1][col1];
                 JButton b2 = buttons[row2][col2];
-                Point p1 = b1.getLocation();
-                Point p2 = b2.getLocation();
+                Point p1 = SwingUtilities.convertPoint(b1.getParent(), b1.getLocation(), overlayPanel);
+                Point p2 = SwingUtilities.convertPoint(b2.getParent(), b2.getLocation(), overlayPanel);
+
                 int x1 = p1.x + b1.getWidth() / 2;
                 int y1 = p1.y + b1.getHeight() / 2;
                 int x2 = p2.x + b2.getWidth() / 2;
                 int y2 = p2.y + b2.getHeight() / 2;
 
-                g2.setColor(line.color);
                 g2.drawLine(x1, y1, x2, y2);
             }
         }
     }
-
     private boolean inBounds(int row, int col) {
         return row >= 0 && row < buttons.length && col >= 0 && col < buttons[0].length;
     }
+
 }

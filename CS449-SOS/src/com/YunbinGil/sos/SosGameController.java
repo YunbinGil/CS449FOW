@@ -62,6 +62,11 @@ public class SosGameController {
         return move;
     }
 
+    public void refreshWinningLinesForSimpleGame() {
+        sosLines.clear();
+        addSimpleWinningLines(game.isBlueTurn()); // 마지막 SOS 만든 사람은 턴 유지된 상태
+    }
+
     private void addSimpleWinningLines(boolean isBlue) {
         for (int i = 0; i < game.getBoard().length; i++) {
             for (int j = 0; j < game.getBoard()[0].length; j++) {
