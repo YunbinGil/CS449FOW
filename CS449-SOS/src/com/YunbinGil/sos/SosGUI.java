@@ -79,7 +79,10 @@ public class SosGUI extends JFrame {
                 final int col = j;
                 buttons[i][j] = new JButton(" ");
                 buttons[i][j].setFont(new Font("Arial", Font.PLAIN, 24));
-                buttons[i][j].addActionListener(e -> placeLetter(row, col));
+                buttons[i][j].addActionListener(e -> {
+                    placeLetter(row, col);
+
+                });
                 boardPanel.add(buttons[i][j]);
             }
         }
@@ -157,7 +160,7 @@ public class SosGUI extends JFrame {
             boolean isBlueTurn = controller.getGame().isBlueTurn();
             controller.handleMove(row, col, letter.charAt(0), isBlueTurn);
             buttons[row][col].setText(String.valueOf(controller.getGame().getLetter(row, col)));
-
+//            game.placeLetter(row, col, letter.charAt(0));
             if (controller.getGame().isGeneralMode()) {
                 controller.addGeneralSosLines(row, col, isBlueTurn);
                 repaintOverlay();
@@ -171,6 +174,7 @@ public class SosGUI extends JFrame {
                 return;
             }
 
+            game.placeLetter(row, col, letter.charAt(0));
             updateCurrentTurnLabel();
 
             // 🧠 컴퓨터 턴 수행 (invokeLater로 이벤트 큐에 넣음)
@@ -253,6 +257,7 @@ public class SosGUI extends JFrame {
     private void updateCurrentTurnLabel() {
         boolean isBlue = controller.getGame().isBlueTurn();
         currentTurnLabel.setText("Current Turn: " + (isBlue ? "Blue" : "Red"));
+        System.out.println("turn is changed to "+ (isBlue ? "Blue" : "Red"));
     }
 
     private void disableBoard() {

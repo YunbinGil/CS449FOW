@@ -26,9 +26,14 @@ public abstract class SosGame {
     public void placeLetter(int row, int col, char letter) {
         if (isCellEmpty(row, col)) {
             board[row][col] = letter;
-            if (!checkSOS(row, col)) {
-                isBlueTurn = !isBlueTurn;  // 턴 전환
+            if (this instanceof SimpleGame){
+                if (!checkSOS(row, col)) {
+                    isBlueTurn = !isBlueTurn;  // 턴 전환
+                }
+            }else{
+                isBlueTurn = !isBlueTurn;
             }
+
         }
     }
 
