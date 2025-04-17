@@ -39,7 +39,9 @@ public class SosGUI extends JFrame {
         boardSizeBox = new JComboBox<>(new String[]{"3", "5", "8"});
         modeBox = new JComboBox<>(new String[]{"Simple", "General"});
         JButton newGameButton = new JButton("New Game");
-        newGameButton.addActionListener(e -> startNewGame());
+        newGameButton.addActionListener(e -> {
+            startNewGame();
+        });
         currentTurnLabel = new JLabel("Current Turn: Blue");
 
         topPanel.add(new JLabel("Board Size:"));
@@ -133,10 +135,15 @@ public class SosGUI extends JFrame {
 
         if (blueIsComputer) {
             SwingUtilities.invokeLater(() -> {
-                controller.handleComputerTurn(true);
+                ComputerPlayer.Move move = controller.handleComputerTurn(true);
+                if (move != null) {
+                    buttons[move.row][move.col].setText(String.valueOf(move.letter));
+                }
                 repaintOverlay();
+                updateCurrentTurnLabel();
             });
         }
+//        SwingUtilities.invokeLater(() -> maybeStartComputerTurn());
     }
 
     private void placeLetter(int row, int col) {
@@ -149,11 +156,12 @@ public class SosGUI extends JFrame {
         if (letter != null) {
             boolean isBlueTurn = controller.getGame().isBlueTurn();
             controller.handleMove(row, col, letter.charAt(0), isBlueTurn);
+            buttons[row][col].setText(String.valueOf(controller.getGame().getLetter(row, col)));
 
-            char actual = controller.getGame().getLetter(row, col);
-            buttons[row][col].setText(String.valueOf(actual));
-
-            repaintOverlay();
+            if (controller.getGame().isGeneralMode()) {
+                controller.addGeneralSosLines(row, col, isBlueTurn);
+                repaintOverlay();
+            }
 
             if (controller.isGameOver()) {
                 gameOver = true;
@@ -165,6 +173,7 @@ public class SosGUI extends JFrame {
 
             updateCurrentTurnLabel();
 
+            // 🧠 컴퓨터 턴 수행 (invokeLater로 이벤트 큐에 넣음)
             SwingUtilities.invokeLater(() -> {
                 while (!controller.isGameOver()) {
                     boolean isComputer = (controller.getGame().isBlueTurn() && controller.isBlueComputer()) ||
@@ -175,6 +184,9 @@ public class SosGUI extends JFrame {
                         ComputerPlayer.Move move = controller.handleComputerTurn(before);
                         if (move != null) {
                             buttons[move.row][move.col].setText(String.valueOf(move.letter));
+                            if (controller.getGame().isGeneralMode()) {
+                                controller.addGeneralSosLines(move.row, move.col, before);
+                            }
                         }
                         repaintOverlay();
                         updateCurrentTurnLabel();
@@ -184,24 +196,54 @@ public class SosGUI extends JFrame {
                             disableBoard();
                             highlightWinningSOS();
                             JOptionPane.showMessageDialog(this, controller.getResultMessage(), "Game Over", JOptionPane.INFORMATION_MESSAGE);
-                            return;
+                            break;
                         }
 
-                        if (controller.getGame().isBlueTurn() == before) break;
-
+                        // SOS 성공으로 턴 안 바뀌면 종료
+                        if (controller.getGame().isBlueTurn() == before) {
+                            updateCurrentTurnLabel();
+                            break;
+                        }
                     } else {
                         break;
                     }
                 }
+            });
+        }
+    }
 
-                if (controller.isGameOver() && !gameOver) {
+    private void maybeStartComputerTurn() {
+        if (controller == null || controller.isGameOver()) return;
+
+        SwingUtilities.invokeLater(() -> {
+            while (!controller.isGameOver()) {
+                boolean currentTurnIsComputer = (controller.getGame().isBlueTurn() && controller.isBlueComputer()) ||
+                        (!controller.getGame().isBlueTurn() && controller.isRedComputer());
+                if (!currentTurnIsComputer) break;
+
+                boolean before = controller.getGame().isBlueTurn();
+                ComputerPlayer.Move move = controller.handleComputerTurn(before);
+                if (move != null) {
+                    buttons[move.row][move.col].setText(String.valueOf(move.letter));
+                    if (controller.getGame().isGeneralMode()) {
+                        controller.addGeneralSosLines(move.row, move.col, before);
+                    }
+                }
+
+                repaintOverlay();
+                updateCurrentTurnLabel();
+
+                if (controller.isGameOver()) {
                     gameOver = true;
                     disableBoard();
                     highlightWinningSOS();
                     JOptionPane.showMessageDialog(this, controller.getResultMessage(), "Game Over", JOptionPane.INFORMATION_MESSAGE);
+                    break;
                 }
-            });
-        }
+
+                if (controller.getGame().isBlueTurn() == before) break;
+            }
+        });
     }
 
     private void updateCurrentTurnLabel() {

@@ -77,11 +77,9 @@ public class SosGameController {
             }
         }
     }
-    private void addGeneralSosLines(int row, int col, boolean isBlueTurn) {
-        if (game.checkDirection(row, col, 1, 0)) sosLines.add(new SosLine(row, col, 1, 0, isBlueTurn ? java.awt.Color.BLUE : java.awt.Color.RED));
-        if (game.checkDirection(row, col, 0, 1)) sosLines.add(new SosLine(row, col, 0, 1, isBlueTurn ? java.awt.Color.BLUE : java.awt.Color.RED));
-        if (game.checkDirection(row, col, 1, 1)) sosLines.add(new SosLine(row, col, 1, 1, isBlueTurn ? java.awt.Color.BLUE : java.awt.Color.RED));
-        if (game.checkDirection(row, col, 1, -1)) sosLines.add(new SosLine(row, col, 1, -1, isBlueTurn ? java.awt.Color.BLUE : java.awt.Color.RED));
+    public void addGeneralSosLines(int row, int col, boolean isBlueTurn) {
+        Color currentColor = isBlueTurn ? Color.BLUE : Color.RED;
+        sosLines.addAll(game.checkAllDirections(row, col, currentColor));
     }
 
     public java.util.List<SosLine> getSosLines() {
