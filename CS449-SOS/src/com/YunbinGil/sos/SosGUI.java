@@ -146,7 +146,6 @@ public class SosGUI extends JFrame {
                 updateCurrentTurnLabel();
             });
         }
-        SwingUtilities.invokeLater(this::maybeStartComputerTurn);
     }
 
     private void placeLetter(int row, int col) {
@@ -179,6 +178,9 @@ public class SosGUI extends JFrame {
             // 🧠 컴퓨터 턴 수행 (invokeLater로 이벤트 큐에 넣음)
             SwingUtilities.invokeLater(() -> {
                 while (!controller.isGameOver()) {
+//                    if (startNewGame();){
+//                        break;
+//                    }
                     boolean isComputer = (controller.getGame().isBlueTurn() && controller.isBlueComputer()) ||
                             (!controller.getGame().isBlueTurn() && controller.isRedComputer());
 
@@ -210,41 +212,6 @@ public class SosGUI extends JFrame {
                 }
             });
         }
-    }
-
-    private void maybeStartComputerTurn() {
-        if (controller == null || controller.isGameOver()) return;
-
-        boolean currentTurnIsComputer = (controller.getGame().isBlueTurn() && controller.isBlueComputer()) ||
-                (!controller.getGame().isBlueTurn() && controller.isRedComputer());
-        if (!currentTurnIsComputer) return;
-
-        Timer timer = new Timer(500, null);
-        timer.setRepeats(false);
-        timer.addActionListener(e -> {
-            boolean before = controller.getGame().isBlueTurn();
-            ComputerPlayer.Move move = controller.handleComputerTurn(before);
-            if (move != null) {
-                buttons[move.row][move.col].setText(String.valueOf(move.letter));
-            }
-
-            repaintOverlay();
-            updateCurrentTurnLabel();
-
-            if (controller.isGameOver()) {
-                gameOver = true;
-                disableBoard();
-                highlightWinningSOS();
-                JOptionPane.showMessageDialog(this, controller.getResultMessage(), "Game Over", JOptionPane.INFORMATION_MESSAGE);
-            } else if (controller.getGame().isBlueTurn() == before) {
-                // same turn again → schedule next move
-                maybeStartComputerTurn();
-            } else {
-                // turn changed → schedule next move for the other player
-                maybeStartComputerTurn();
-            }
-        });
-        timer.start();
     }
 
     private void updateCurrentTurnLabel() {
