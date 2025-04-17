@@ -143,7 +143,7 @@ public class SosGUI extends JFrame {
                 updateCurrentTurnLabel();
             });
         }
-//        SwingUtilities.invokeLater(() -> maybeStartComputerTurn());
+        SwingUtilities.invokeLater(this::maybeStartComputerTurn);
     }
 
     private void placeLetter(int row, int col) {
@@ -215,35 +215,39 @@ public class SosGUI extends JFrame {
     private void maybeStartComputerTurn() {
         if (controller == null || controller.isGameOver()) return;
 
-        SwingUtilities.invokeLater(() -> {
-            while (!controller.isGameOver()) {
-                boolean currentTurnIsComputer = (controller.getGame().isBlueTurn() && controller.isBlueComputer()) ||
-                        (!controller.getGame().isBlueTurn() && controller.isRedComputer());
-                if (!currentTurnIsComputer) break;
+        boolean currentTurnIsComputer = (controller.getGame().isBlueTurn() && controller.isBlueComputer()) ||
+                (!controller.getGame().isBlueTurn() && controller.isRedComputer());
+        if (!currentTurnIsComputer) return;
 
-                boolean before = controller.getGame().isBlueTurn();
-                ComputerPlayer.Move move = controller.handleComputerTurn(before);
-                if (move != null) {
-                    buttons[move.row][move.col].setText(String.valueOf(move.letter));
-                    if (controller.getGame().isGeneralMode()) {
-                        controller.addGeneralSosLines(move.row, move.col, before);
-                    }
+        Timer timer = new Timer(500, null);
+        timer.setRepeats(false);
+        timer.addActionListener(e -> {
+            boolean before = controller.getGame().isBlueTurn();
+            ComputerPlayer.Move move = controller.handleComputerTurn(before);
+            if (move != null) {
+                buttons[move.row][move.col].setText(String.valueOf(move.letter));
+                if (controller.getGame().isGeneralMode()) {
+                    controller.addGeneralSosLines(move.row, move.col, before);
                 }
+            }
 
-                repaintOverlay();
-                updateCurrentTurnLabel();
+            repaintOverlay();
+            updateCurrentTurnLabel();
 
-                if (controller.isGameOver()) {
-                    gameOver = true;
-                    disableBoard();
-                    highlightWinningSOS();
-                    JOptionPane.showMessageDialog(this, controller.getResultMessage(), "Game Over", JOptionPane.INFORMATION_MESSAGE);
-                    break;
-                }
-
-                if (controller.getGame().isBlueTurn() == before) break;
+            if (controller.isGameOver()) {
+                gameOver = true;
+                disableBoard();
+                highlightWinningSOS();
+                JOptionPane.showMessageDialog(this, controller.getResultMessage(), "Game Over", JOptionPane.INFORMATION_MESSAGE);
+            } else if (controller.getGame().isBlueTurn() == before) {
+                // same turn again → schedule next move
+                maybeStartComputerTurn();
+            } else {
+                // turn changed → schedule next move for the other player
+                maybeStartComputerTurn();
             }
         });
+        timer.start();
     }
 
     private void updateCurrentTurnLabel() {
