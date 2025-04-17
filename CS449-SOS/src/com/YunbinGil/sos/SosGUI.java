@@ -160,9 +160,8 @@ public class SosGUI extends JFrame {
             boolean isBlueTurn = controller.getGame().isBlueTurn();
             controller.handleMove(row, col, letter.charAt(0), isBlueTurn);
             buttons[row][col].setText(String.valueOf(controller.getGame().getLetter(row, col)));
-//            game.placeLetter(row, col, letter.charAt(0));
             if (controller.getGame().isGeneralMode()) {
-                controller.addGeneralSosLines(row, col, isBlueTurn);
+                highlightWinningSOS();
                 repaintOverlay();
             }
 
@@ -188,9 +187,6 @@ public class SosGUI extends JFrame {
                         ComputerPlayer.Move move = controller.handleComputerTurn(before);
                         if (move != null) {
                             buttons[move.row][move.col].setText(String.valueOf(move.letter));
-                            if (controller.getGame().isGeneralMode()) {
-                                controller.addGeneralSosLines(move.row, move.col, before);
-                            }
                         }
                         repaintOverlay();
                         updateCurrentTurnLabel();
@@ -230,9 +226,6 @@ public class SosGUI extends JFrame {
             ComputerPlayer.Move move = controller.handleComputerTurn(before);
             if (move != null) {
                 buttons[move.row][move.col].setText(String.valueOf(move.letter));
-                if (controller.getGame().isGeneralMode()) {
-                    controller.addGeneralSosLines(move.row, move.col, before);
-                }
             }
 
             repaintOverlay();

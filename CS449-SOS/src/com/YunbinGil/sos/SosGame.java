@@ -7,8 +7,8 @@ import java.util.List;
 public abstract class SosGame {
     protected char[][] board;
     protected int boardSize;
-    public int sosCountBlue;
-    public int sosCountRed;
+    public int sosCountBlue=0;
+    public int sosCountRed=0;
     protected boolean isBlueTurn = true;
     protected static final int[][] DIRECTIONS = {{1, 0}, {0, 1}, {1, 1}, {1, -1}};
 
@@ -92,6 +92,9 @@ public abstract class SosGame {
                 board[i][j] = ' '; // 빈 칸을 공백 문자로 채움
             }
         }
+        sosCountBlue = 0;
+        sosCountRed = 0;
+        isBlueTurn = true;
     }
 
     public char[][] getBoard() {
