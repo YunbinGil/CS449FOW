@@ -7,8 +7,8 @@ import java.util.List;
 public abstract class SosGame {
     protected char[][] board;
     protected int boardSize;
-    public int sosCountBlue=0;
-    public int sosCountRed=0;
+    public int sosCountBlue = 0;
+    public int sosCountRed = 0;
     protected boolean isBlueTurn = true;
     protected static final int[][] DIRECTIONS = {{1, 0}, {0, 1}, {1, 1}, {1, -1}};
 
@@ -26,11 +26,11 @@ public abstract class SosGame {
     public void placeLetter(int row, int col, char letter) {
         if (isCellEmpty(row, col)) {
             board[row][col] = letter;
-            if (this instanceof SimpleGame){
+            if (this instanceof SimpleGame) {
                 if (!checkSOS(row, col)) {
                     isBlueTurn = !isBlueTurn;  // 턴 전환
                 }
-            }else{
+            } else {
                 isBlueTurn = !isBlueTurn;
             }
 
@@ -76,6 +76,7 @@ public abstract class SosGame {
                 board[row1][col1] == 'S' &&
                 board[row2][col2] == 'S';
     }
+
     public List<SosLine> checkAllDirections(int row, int col, Color color) {
         List<SosLine> found = new ArrayList<>();
         if (checkDirection(row, col, 1, 0)) found.add(new SosLine(row, col, 1, 0, color));
@@ -89,7 +90,7 @@ public abstract class SosGame {
     public void initializeBoard() {
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
-                board[i][j] = ' '; // 빈 칸을 공백 문자로 채움
+                board[i][j] = ' ';
             }
         }
         sosCountBlue = 0;
@@ -100,6 +101,7 @@ public abstract class SosGame {
     public char[][] getBoard() {
         return board;
     }
+
     public boolean isBlueTurn() {
         return isBlueTurn;
     }
@@ -109,7 +111,6 @@ public abstract class SosGame {
     }
 
 
-    // 자식 클래스에서 구현할 메서드
     public abstract boolean checkWinner();
     public abstract String getWinner();
 }

@@ -144,16 +144,6 @@ public class SosGUI extends JFrame {
         setupBoard(size);
         repaintOverlay();
 
-//        if (blueIsComputer) {
-//            SwingUtilities.invokeLater(() -> {
-//                ComputerPlayer.Move move = controller.handleComputerTurn(true);
-//                if (move != null) {
-//                    buttons[move.row][move.col].setText(String.valueOf(move.letter));
-//                }
-//                repaintOverlay();
-//                updateCurrentTurnLabel();
-//            });
-//        }
         if (blueIsComputer || redIsComputer) {
             SwingUtilities.invokeLater(this::runComputerLoop);  // ✅ 자동 루프 시작
         }
@@ -226,7 +216,6 @@ public class SosGUI extends JFrame {
             if (nextIsComputer && !controller.isGameOver()) {
                 runComputerLoop();
             }
-
         }
     }
 
@@ -263,7 +252,6 @@ public class SosGUI extends JFrame {
                 }
             }
         }
-
         overlayPanel.repaint();
     }
 
@@ -299,5 +287,4 @@ public class SosGUI extends JFrame {
     private boolean inBounds(int row, int col) {
         return row >= 0 && row < buttons.length && col >= 0 && col < buttons[0].length;
     }
-
 }
