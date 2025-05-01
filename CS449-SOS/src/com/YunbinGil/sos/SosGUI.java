@@ -2,6 +2,7 @@ package com.YunbinGil.sos;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.util.List;
 
 public class SosGUI extends JFrame {
@@ -77,11 +78,14 @@ public class SosGUI extends JFrame {
 
         JButton replayButton = new JButton("Replay");
         replayButton.addActionListener(e -> {
-            String fileName = JOptionPane.showInputDialog(this, "Enter filename to replay:", "Replay Game", JOptionPane.PLAIN_MESSAGE);
-            if (fileName != null && !fileName.trim().isEmpty()) {
-                if (!fileName.endsWith(".txt")) {
-                    fileName += ".txt";
-                }
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+            fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Text Files (*.txt)", "txt"));
+            fileChooser.setDialogTitle("Select a replay file");
+            int result = fileChooser.showOpenDialog(this);
+
+            if (result == JFileChooser.APPROVE_OPTION) {
+                String fileName = fileChooser.getSelectedFile().getAbsolutePath();
                 runReplay(fileName);
             }
         });
