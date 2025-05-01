@@ -19,6 +19,7 @@ public class SosGUI extends JFrame {
     private JComboBox<String> redPlayerTypeBox;
     private boolean allowComputerLoop = false;
     private Timer computerLoopTimer = null; //to Prevent duplicate runs
+    JCheckBox recordCheckBox;
 
 
     public SosGUI() {
@@ -53,6 +54,7 @@ public class SosGUI extends JFrame {
         topPanel.add(modeBox);
         topPanel.add(new JLabel("   "));
         topPanel.add(currentTurnLabel);
+
         topPanel.add(newGameButton);
 
         add(topPanel, BorderLayout.SOUTH);
@@ -66,6 +68,10 @@ public class SosGUI extends JFrame {
         panel.add(bluePlayerTypeBox);
         panel.add(new JLabel("Red Player:"));
         panel.add(redPlayerTypeBox);
+
+        recordCheckBox = new JCheckBox("Record");
+        recordCheckBox.setSelected(false); // 기본 체크 안 함
+        panel.add(recordCheckBox);
         add(panel, BorderLayout.NORTH);
     }
 
@@ -133,6 +139,11 @@ public class SosGUI extends JFrame {
         boolean isSimple = modeBox.getSelectedItem().equals("Simple");
         game = isSimple ? new SimpleGame(size) : new GeneralGame(size);
         controller = new SosGameController(game);
+
+        if (recordCheckBox.isSelected()) {
+            controller.enableRecording("recorded_game.txt");
+            System.out.println("📼 Recording will start with this game.");
+        }
 
         boolean blueIsComputer = bluePlayerTypeBox.getSelectedItem().equals("Computer");
         boolean redIsComputer = redPlayerTypeBox.getSelectedItem().equals("Computer");

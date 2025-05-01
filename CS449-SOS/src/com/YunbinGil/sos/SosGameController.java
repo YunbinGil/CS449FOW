@@ -16,6 +16,9 @@ public class SosGameController {
 
     private List<SosLine> sosLines = new ArrayList<>();
 
+    private RecordManager recorder;
+    private boolean recording = false;
+
     public SosGameController(SosGame game) {
         this.game = game;
     }
@@ -32,6 +35,14 @@ public class SosGameController {
     public void handleMove(int row, int col, char letter, boolean isBlueTurn) {
         if (game.isCellEmpty(row, col) && !gameOver) {
             game.placeLetter(row, col, letter);
+
+            // ✅ 기록하기
+            if (recording) {
+                String color = isBlueTurn ? "BLUE" : "RED";
+                String mode = game instanceof SimpleGame ? "SIMPLE" : "GENERAL";
+                recorder.recordMove(color, row, col, letter, mode);
+            }
+
             for (int i = 0; i < game.boardSize; i++) {
                 for (int j = 0; j < game.boardSize; j++) {
                     for (int[] d : SosGame.DIRECTIONS) {
@@ -41,6 +52,12 @@ public class SosGameController {
             }
             if (game.checkWinner()) {
                 gameOver = true;
+
+                // ✅ 게임 끝나면 저장
+                if (recording) {
+                    recorder.saveToFile();
+                    System.out.println("✅ Game recorded.");
+                }
             }
         }
     }
@@ -56,6 +73,14 @@ public class SosGameController {
         if (move != null) {
             System.out.println("🤖 Computer moves: " + move.row + "," + move.col + " = " + move.letter);
             game.placeLetter(move.row, move.col, move.letter);
+
+            // ✅ 기록하기
+            if (recording) {
+                String color = isBlue ? "BLUE" : "RED";
+                String mode = game instanceof SimpleGame ? "SIMPLE" : "GENERAL";
+                recorder.recordMove(color, move.row, move.col, move.letter, mode);
+            }
+
             for (int i = 0; i < game.boardSize; i++) {
                 for (int j = 0; j < game.boardSize; j++) {
                     for (int[] d : SosGame.DIRECTIONS) {
@@ -65,6 +90,12 @@ public class SosGameController {
             }
             if (game.checkWinner()) {
                 gameOver = true;
+
+                // ✅ 게임 끝나면 저장
+                if (recording) {
+                    recorder.saveToFile();
+                    System.out.println("✅ Game recorded.");
+                }
             }
         } else {
             System.out.println("🤖 No move available.");
@@ -109,5 +140,10 @@ public class SosGameController {
 
     public String getResultMessage() {
         return game.getWinner();
+    }
+
+    public void enableRecording(String fileName) {
+        recorder = new RecordManager(fileName);
+        recording = true;
     }
 }

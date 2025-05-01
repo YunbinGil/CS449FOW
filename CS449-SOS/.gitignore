@@ -33,3 +33,5 @@ bin/
 out/
 target/
 *.class
+
+recorded_game.txt
