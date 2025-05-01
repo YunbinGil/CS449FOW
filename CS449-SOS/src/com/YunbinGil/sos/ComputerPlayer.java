@@ -2,21 +2,16 @@ package com.YunbinGil.sos;
 
 import java.util.*;
 
-public class ComputerPlayer {
+public class ComputerPlayer extends Player{
+    public ComputerPlayer(boolean isBlue){
+        super(isBlue);
+    }
     private static final int[][] DIRECTIONS = {
             {1, 0}, {0, 1}, {1, 1}, {1, -1}
     };
 
-    public static class Move {
-        public int row, col;
-        public char letter;
-        public Move(int row, int col, char letter) {
-            this.row = row;
-            this.col = col;
-            this.letter = letter;
-        }
-    }
 
+    @Override
     public Move decideMove(char[][] board) {
         int n = board.length;
         System.out.println("📋 Computer analyzing board:");

@@ -1,13 +1,20 @@
 package com.YunbinGil.sos;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SosGameController {
     private SosGame game;
-    public boolean blueIsComputer = false;
-    public boolean redIsComputer = false;
-    private java.util.List<SosLine> sosLines = new java.util.ArrayList<>();
     private boolean gameOver = false;
+
+    private boolean blueIsComputer = false;
+    private boolean redIsComputer = false;
+
+    private Player bluePlayer;
+    private Player redPlayer;
+
+    private List<SosLine> sosLines = new ArrayList<>();
 
     public SosGameController(SosGame game) {
         this.game = game;
@@ -16,6 +23,10 @@ public class SosGameController {
     public void setPlayerTypes(boolean blueIsComputer, boolean redIsComputer) {
         this.blueIsComputer = blueIsComputer;
         this.redIsComputer = redIsComputer;
+
+        // ✅ 다형성 기반으로 Player 객체 할당
+        this.bluePlayer = blueIsComputer ? new ComputerPlayer(true) : new HumanPlayer(true);
+        this.redPlayer = redIsComputer ? new ComputerPlayer(false) : new HumanPlayer(false);
     }
 
     public void handleMove(int row, int col, char letter, boolean isBlueTurn) {
@@ -34,11 +45,13 @@ public class SosGameController {
         }
     }
 
-    public ComputerPlayer.Move handleComputerTurn(boolean isBlue) {
-        if ((isBlue && !blueIsComputer) || (!isBlue && !redIsComputer)) return null;
+    // ✅ 다형성을 이용한 컴퓨터 턴 처리
+    public Player.Move handleComputerTurn(boolean isBlue) {
+        Player currentPlayer = isBlue ? bluePlayer : redPlayer;
 
-        ComputerPlayer computer = new ComputerPlayer();
-        ComputerPlayer.Move move = computer.decideMove(game.getBoard());
+        if (!(currentPlayer instanceof ComputerPlayer)) return null;
+
+        Player.Move move = currentPlayer.decideMove(game.getBoard());
 
         if (move != null) {
             System.out.println("🤖 Computer moves: " + move.row + "," + move.col + " = " + move.letter);
@@ -51,7 +64,7 @@ public class SosGameController {
                 }
             }
             if (game.checkWinner()) {
-                    gameOver = true;
+                gameOver = true;
             }
         } else {
             System.out.println("🤖 No move available.");
@@ -73,7 +86,8 @@ public class SosGameController {
         }
     }
 
-    public java.util.List<SosLine> getSosLines() {
+    // 🔻 Getter 메서드들
+    public List<SosLine> getSosLines() {
         return sosLines;
     }
 
