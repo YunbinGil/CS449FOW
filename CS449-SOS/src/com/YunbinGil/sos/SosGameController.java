@@ -146,4 +146,9 @@ public class SosGameController {
         recorder = new RecordManager(fileName);
         recording = true;
     }
+    public void saveToCustomFile(String filename) {
+        if (recording && recorder != null) {
+            recorder.saveToSpecificFile(filename);
+        }
+    }
 }

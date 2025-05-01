@@ -182,6 +182,19 @@ public class SosGUI extends JFrame {
             disableBoard();
             highlightWinningSOS();
             JOptionPane.showMessageDialog(this, controller.getResultMessage(), "Game Over", JOptionPane.INFORMATION_MESSAGE);
+
+            if (recordCheckBox.isSelected()) {
+                String filename = JOptionPane.showInputDialog(this, "Enter filename to save the game:", "Save Game Record", JOptionPane.PLAIN_MESSAGE);
+
+                if (filename != null && !filename.trim().isEmpty()) {
+                    if (!filename.endsWith(".txt")) {
+                        filename += ".txt";
+                    }
+                    controller.saveToCustomFile(filename);
+                }
+            }
+
+
             return;
         }
 

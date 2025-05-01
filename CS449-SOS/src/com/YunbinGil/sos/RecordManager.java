@@ -33,6 +33,17 @@ public class RecordManager {
         }
     }
 
+    public void saveToSpecificFile(String filename) {
+        try (FileWriter writer = new FileWriter(filename)) {
+            for (String line : log) {
+                writer.write(line + "\n");
+            }
+            System.out.println("📁 Saved to " + filename);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void reset() {
         log.clear();
         turn = 1;
