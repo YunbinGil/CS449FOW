@@ -72,6 +72,19 @@ public class SosGUI extends JFrame {
         recordCheckBox = new JCheckBox("Record");
         recordCheckBox.setSelected(false); // 기본 체크 안 함
         panel.add(recordCheckBox);
+
+        JButton replayButton = new JButton("Replay");
+        replayButton.addActionListener(e -> {
+            String fileName = JOptionPane.showInputDialog(this, "Enter filename to replay:", "Replay Game", JOptionPane.PLAIN_MESSAGE);
+            if (fileName != null && !fileName.trim().isEmpty()) {
+                if (!fileName.endsWith(".txt")) {
+                    fileName += ".txt";
+                }
+                runReplay(fileName);
+            }
+        });
+        panel.add(replayButton); // ▶️ recordCheckBox 옆에 추가!
+
         add(panel, BorderLayout.NORTH);
     }
 
@@ -311,4 +324,38 @@ public class SosGUI extends JFrame {
     private boolean inBounds(int row, int col) {
         return row >= 0 && row < buttons.length && col >= 0 && col < buttons[0].length;
     }
+
+    private void runReplay(String fileName) {
+        ReplayManager replayManager = new ReplayManager();
+        List<ReplayManager.ReplayMove> moves = replayManager.loadReplayFile(fileName);
+
+        if (moves.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No moves found in file.", "Replay Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        startNewGame(); // 리셋
+        disableBoard(); // 클릭 막기
+
+        Timer replayTimer = new Timer(700, null); // 0.7초 간격
+        final int[] index = {0};
+
+        replayTimer.addActionListener(e -> {
+            if (index[0] >= moves.size()) {
+                replayTimer.stop();
+                JOptionPane.showMessageDialog(this, "Replay Complete!", "Replay", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            ReplayManager.ReplayMove move = moves.get(index[0]);
+            controller.handleMove(move.row, move.col, move.letter, move.isBlue);
+            buttons[move.row][move.col].setText(String.valueOf(move.letter));
+            repaintOverlay();
+            updateCurrentTurnLabel();
+            index[0]++;
+        });
+
+        replayTimer.start();
+    }
+
 }
