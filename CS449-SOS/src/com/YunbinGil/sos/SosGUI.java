@@ -19,7 +19,9 @@ public class SosGUI extends JFrame {
     private JComboBox<String> redPlayerTypeBox;
     private boolean allowComputerLoop = false;
     private Timer computerLoopTimer = null; //to Prevent duplicate runs
-    JCheckBox recordCheckBox;
+    private JCheckBox recordCheckBox;
+    private boolean replayInProgress = false;
+
 
 
     public SosGUI() {
@@ -143,6 +145,10 @@ public class SosGUI extends JFrame {
 
 
     private void startNewGame() {
+        if (replayInProgress) {
+            JOptionPane.showMessageDialog(this, "Cannot start a new game during replay!", "Replay in Progress", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         if (computerLoopTimer != null) {
             computerLoopTimer.stop();  // ✅ 기존 타이머 중단
             computerLoopTimer = null;
@@ -336,6 +342,8 @@ public class SosGUI extends JFrame {
 
         startNewGame(); // 리셋
         disableBoard(); // 클릭 막기
+        replayInProgress = true;
+        recordCheckBox.setEnabled(false);
 
         Timer replayTimer = new Timer(700, null); // 0.7초 간격
         final int[] index = {0};
@@ -343,6 +351,7 @@ public class SosGUI extends JFrame {
         replayTimer.addActionListener(e -> {
             if (index[0] >= moves.size()) {
                 replayTimer.stop();
+                replayInProgress = false;
                 JOptionPane.showMessageDialog(this, "Replay Complete!", "Replay", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
